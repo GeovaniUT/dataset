@@ -1,0 +1,100 @@
+from flask import Blueprint, jsonify
+from model_utils_excel import cargar_ultimo_excel, codificar_columnas
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.cluster import KMeans
+
+viz_blueprint = Blueprint('viz_routes', __name__)
+
+# Helper para convertir gráficas a base64
+def plot_to_base64(fig):
+    buf = BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+# 1. Gráfica de Regresión Lineal
+@viz_blueprint.route('/grafica-regresion/<target>/<feature>', methods=['GET'])
+def grafica_regresion(target, feature):
+    try:
+        df = cargar_ultimo_excel()
+        df, _ = codificar_columnas(df)
+        
+        X = df[[feature]].values
+        y = df[target].values
+        
+        # Entrenar modelo (o reutilizar si ya está entrenado)
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        # Generar gráfica
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.scatter(X, y, color='blue', label='Datos reales')
+        ax.plot(X, model.predict(X), color='red', linewidth=2, label='Predicción')
+        ax.set_title(f'Regresión Lineal: {target} ~ {feature}')
+        ax.set_xlabel(feature)
+        ax.set_ylabel(target)
+        ax.legend()
+        
+        return jsonify({
+            "grafica": plot_to_base64(fig),
+            "r2_score": model.score(X, y)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 2. Gráfica de Árbol de Decisión (Importancia de Features)
+@viz_blueprint.route('/grafica-arbol/<target>', methods=['GET'])
+def grafica_arbol(target):
+    try:
+        df = cargar_ultimo_excel()
+        df, _ = codificar_columnas(df)
+        
+        X = df.drop(columns=[target]).select_dtypes(include='number')
+        y = df[target].values
+        
+        model = DecisionTreeClassifier()
+        model.fit(X, y)
+        
+        # Gráfica de importancia
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.barh(X.columns, model.feature_importances_)
+        ax.set_title(f'Importancia de Features (Árbol para {target})')
+        
+        return jsonify({
+            "grafica": plot_to_base64(fig),
+            "importancias": dict(zip(X.columns, model.feature_importances_.round(4)))
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 3. Gráfica de Clustering (K-Means)
+@viz_blueprint.route('/grafica-clustering/<feature1>/<feature2>', methods=['GET'])
+def grafica_clustering(feature1, feature2):
+    try:
+        df = cargar_ultimo_excel()
+        df, _ = codificar_columnas(df)
+        
+        X = df[[feature1, feature2]].values
+        
+        model = KMeans(n_clusters=3, n_init=10)
+        clusters = model.fit_predict(X)
+        
+        # Gráfica de clusters
+        fig, ax = plt.subplots(figsize=(10, 6))
+        scatter = ax.scatter(X[:, 0], X[:, 1], c=clusters, cmap='viridis', alpha=0.6)
+        ax.set_title(f'Clustering: {feature1} vs {feature2}')
+        ax.set_xlabel(feature1)
+        ax.set_ylabel(feature2)
+        fig.colorbar(scatter, label='Cluster')
+        
+        return jsonify({
+            "grafica": plot_to_base64(fig),
+            "centroides": model.cluster_centers_.tolist()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
