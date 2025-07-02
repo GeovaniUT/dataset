@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from model_utils_excel import cargar_ultimo_excel, codificar_columnas
+from model_utils_excel import cargar_excel, codificar_columnas
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
@@ -21,7 +21,7 @@ def plot_to_base64(fig):
 @viz_blueprint.route('/grafica-regresion/<target>/<feature>', methods=['GET'])
 def grafica_regresion(target, feature):
     try:
-        df = cargar_ultimo_excel()
+        df = cargar_excel()
         df, _ = codificar_columnas(df)
         
         X = df[[feature]].values
@@ -51,7 +51,7 @@ def grafica_regresion(target, feature):
 @viz_blueprint.route('/grafica-arbol/<target>', methods=['GET'])
 def grafica_arbol(target):
     try:
-        df = cargar_ultimo_excel()
+        df = cargar_excel()
         df, _ = codificar_columnas(df)
         
         X = df.drop(columns=[target]).select_dtypes(include='number')
@@ -76,7 +76,7 @@ def grafica_arbol(target):
 @viz_blueprint.route('/grafica-clustering/<feature1>/<feature2>', methods=['GET'])
 def grafica_clustering(feature1, feature2):
     try:
-        df = cargar_ultimo_excel()
+        df = cargar_excel()
         df, _ = codificar_columnas(df)
         
         X = df[[feature1, feature2]].values
