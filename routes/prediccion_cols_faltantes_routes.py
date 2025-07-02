@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify
 from model_utils_excel import cargar_excel
-from model_utils_excel import prediccion_col_adiccion
-from model_utils_excel import prediccion_col_affect_academic_performance
+from predictors.adiction import prediccion_col_adiccion
+from predictors.academic import prediccion_col_affect_academic_performance
 from predictors.mental_health import predecir_salud_mental
 
 
 predict_cl_blueprint= Blueprint('prediccion_cols_faltantes_routes', __name__)
 
-@predict_cl_blueprint.route('/completar-scores', methods=['GET'])
+@predict_cl_blueprint.route('/completar-adiccion', methods=['GET'])
 def completar_scores():
     try:
         # 1. Cargar datos

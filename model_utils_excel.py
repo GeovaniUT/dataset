@@ -2,8 +2,6 @@
 import pandas as pd
 import numpy as np
 import os
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -112,104 +110,6 @@ def entrenar_modelos_desde_lista(combinaciones):
     return resultados
 
 
-#Se aplica RandomForest para generar un set de datos sintéticos para alimentar el modelo de regresión lineal.
-def generar_datos_con_rf_col_adic(n=1000):
-    np.random.seed(42)
-    
-    #Establecimiento de rango para valores aleatorios.
-    #Datos dentro de parámentros son según el estimado para cada columna
-    avg_daily_usage_hours = np.random.randint(1, 10, size=n)  # 1-10 horas
-    sleep_hours_per_night = np.random.randint(3, 10, size=n)   # 3-10 horas
-    
-    # Ajuste para establecer a partir de qué valores podría aumentar datos en columna objetivo.
-    base_score = np.where(avg_daily_usage_hours > 2, 
-                         np.interp(avg_daily_usage_hours, [2, 12], [5, 7]), 
-                         1)
-    
-    sleep_adjustment = np.where(sleep_hours_per_night < 6,
-                              np.interp(sleep_hours_per_night, [3, 6], [2, 0]),
-                              0)
-    
-    addicted_score = np.clip(base_score + sleep_adjustment, 1, 10)
-    
-    # Variabilidad para emular aleatoriedad de datos datos.
-    addicted_score += np.random.normal(0, 0.5, size=n)
-    addicted_score = np.clip(addicted_score, 1, 10).round().astype(int)
-    
-    return pd.DataFrame({
-        'avg_daily_usage_hours': avg_daily_usage_hours,
-        'sleep_hours_per_night': sleep_hours_per_night,
-        'addicted_score': addicted_score
-    })
-
-def generar_datos_booleanos_col_academic_perfomance(n=5000):
-    np.random.seed(42)
-    
-    # Generar las mismas features base
-    avg_daily_usage_hours = np.random.randint(0, 12, size=n)
-    sleep_hours_per_night = np.random.randint(3, 10, size=n)
-    
-    # Lógica para determinar si afecta el rendimiento
-    prob_afecta = np.where(
-        avg_daily_usage_hours > 3,
-        np.interp(avg_daily_usage_hours, [3, 12], [0.3, 0.9]),  # Más horas → mayor probabilidad
-        0.1  # Probabilidad base si usa poco
-    )
-    
-    # Ajustar por horas de sueño
-    prob_afecta += np.where(
-        sleep_hours_per_night < 6,
-        np.interp(sleep_hours_per_night, [3, 6], [0.4, 0]),  # Menos sueño → mayor probabilidad
-        0
-    )
-    
-    # Generar valores booleanos (1 o 0) basados en la probabilidad
-    affects_academic_performance = np.random.binomial(1, np.clip(prob_afecta, 0, 1))
-    
-    return pd.DataFrame({
-        'avg_daily_usage_hours': avg_daily_usage_hours,
-        'sleep_hours_per_night': sleep_hours_per_night,
-        'affects_academic_performance': affects_academic_performance
-    })
-
-
-#Función de predicción columna adict v.0.1
-def prediccion_col_adiccion(df):
-   
-    # Paso 1: Generar datos sintéticos
-    df_sintetico = generar_datos_con_rf_col_adic(5000)
-    
-    # Paso 2: Entrenar modelo
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(df_sintetico[['avg_daily_usage_hours', 'sleep_hours_per_night']], 
-              df_sintetico['addicted_score'])
-    
-    # Paso 3: Predecir valores faltantes
-    mask = df['addicted_score'] == 0
-    if mask.any():
-        X = df.loc[mask, ['avg_daily_usage_hours', 'sleep_hours_per_night']]
-        df.loc[mask, 'addicted_score'] = model.predict(X).round().clip(1, 10)
-    
-    return df
-
-def prediccion_col_affect_academic_performance(df):
-    # 1. Generar datos sintéticos
-    df_sintetico = generar_datos_booleanos_col_academic_perfomance(5000)
-    
-    # 2. Entrenar modelo de clasificación (no regresión)
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(
-        df_sintetico[['avg_daily_usage_hours', 'sleep_hours_per_night']],
-        df_sintetico['affects_academic_performance']
-    )
-    
-    # 3. Predecir valores faltantes (asumiendo que los faltantes son 0)
-    mask = df['affects_academic_performance'] == 0
-    if mask.any():
-        X = df.loc[mask, ['avg_daily_usage_hours', 'sleep_hours_per_night']]
-        df.loc[mask, 'affects_academic_performance'] = model.predict(X)
-    
-    return df
 
 
 # def prediccion_col_adiccion(df, guardar_cambios=False, ruta_guardado=None):

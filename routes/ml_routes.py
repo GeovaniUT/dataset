@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify
 from model_utils_excel import entrenar_modelos_desde_lista
 from model_utils_excel import prediccion_columnas_vacias
 from model_utils_excel import cargar_excel
-from model_utils_excel import prediccion_col_adiccion
-from model_utils_excel import prediccion_col_affect_academic_performance
+# from model_utils_excel import prediccion_col_adiccion
+# from model_utils_excel import prediccion_col_affect_academic_performance
 from predictors.mental_health import predecir_salud_mental
 
 ml_blueprint = Blueprint('ml_routes', __name__)

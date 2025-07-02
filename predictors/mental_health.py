@@ -1,6 +1,5 @@
 from sklearn.ensemble import RandomForestRegressor
-from utils.data_helpers import generar_datos_salud_mental
-
+from utils.data_helpers.metal_health_data_helper import generar_datos_salud_mental
 def predecir_salud_mental(df):
     # 1. Generar datos sintéticos
     df_sintetico = generar_datos_salud_mental(8000)  # Más datos para mejor precisión
