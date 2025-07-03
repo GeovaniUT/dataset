@@ -2,9 +2,8 @@ import pandas as pd
 from predictors.academic import prediccion_col_affect_academic_performance
 from predictors.adiction import prediccion_col_adiccion
 from predictors.mental_health import predecir_salud_mental
-from model_utils_excel import cargar_excel
 
-def prediccion_cols_vacias():
+def prediccion_cols_vacias(df):
     """
     Flujo completo para predecir y completar columnas vacías:
     1. Predice affects_academic_performance
@@ -12,7 +11,7 @@ def prediccion_cols_vacias():
     3. Predice mental_health_score y guarda Excel
     """
     # Cargar datos originales
-    df_original = cargar_excel()
+    df_original = df
     
     # Paso 1: Completar affects_academic_performance
     copia_1 = prediccion_col_affect_academic_performance(df_original)
