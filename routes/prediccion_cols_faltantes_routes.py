@@ -3,6 +3,8 @@ from model_utils_excel import cargar_excel
 from predictors.adiction import prediccion_col_adiccion
 from predictors.academic import prediccion_col_affect_academic_performance
 from predictors.mental_health import predecir_salud_mental
+from pathlib import Path
+from predictors.prediccion_cols_vacias import prediccion_cols_vacias
 
 
 predict_cl_blueprint= Blueprint('prediccion_cols_faltantes_routes', __name__)
@@ -162,3 +164,37 @@ def completar_salud_mental():
     
     except Exception as e:
         return jsonify({"error": str(e), "type": type(e).__name__}), 500
+
+@predict_cl_blueprint.route('/generar-excel-enriquecido', methods=['GET'])
+def generar_excel_endpoint():
+    try:
+        # 1. Ejecutar el flujo completo
+        prediccion_cols_vacias()
+        
+        # 2. Definir ruta esperada
+        output_path = Path('data/excel_cargado/excel_enriquecido.xlsx')
+        
+        # 3. Validar que el archivo se creó correctamente
+        if not output_path.exists():
+            return jsonify({
+                "status": "error",
+                "message": "El archivo no se generó en la ruta esperada",
+                "path": str(output_path)
+            }), 500
+        
+        # 4. Respuesta de éxito
+        return jsonify({
+            "status": "success",
+            "message": "Archivo Excel generado correctamente",
+            "path": str(output_path),
+            "file_size": f"{output_path.stat().st_size / 1024:.2f} KB",
+            "timestamp": output_path.stat().st_ctime
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "type": type(e).__name__,
+            "message": "Error en el proceso de generación"
+        }), 500
