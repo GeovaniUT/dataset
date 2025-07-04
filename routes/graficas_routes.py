@@ -154,7 +154,7 @@ def predecir_rendimiento(horas_uso: float, horas_sueno: float):
             "detalles": str(e)
         }), 500
 
-@viz_blueprint.route('/grafica-salud-mental/<path:horas_sueno>/<int:estatus_relacion>', methods=['GET'])
+@viz_blueprint.route('/grafica-salud-mental/<float:horas_sueno>/<int:estatus_relacion>', methods=['GET'])
 def grafica_salud_mental(horas_sueno, estatus_relacion):
     try:
         # Importar función de generación de datos
