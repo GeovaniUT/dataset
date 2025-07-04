@@ -14,6 +14,7 @@ import pandas as pd
 import io
 from predictors.adiction_grafic import predecir_adiccion_porcentual
 from predictors.academic_grafic import predecir_afectacion_academica
+from predictors.mental_health import predecir_salud_mental
 
 
 viz_blueprint = Blueprint('viz_routes', __name__)
@@ -153,3 +154,77 @@ def predecir_rendimiento(horas_uso: float, horas_sueno: float):
             "error": "Error en la predicción",
             "detalles": str(e)
         }), 500
+    
+
+    
+@viz_blueprint.route('/grafica-salud-mental/<float:horas_sueno>/<int:estatus_relacion>', methods=['GET'])
+def grafica_salud_mental(horas_sueno, estatus_relacion):
+    try:
+        # Importar función de generación de datos
+        from utils.data_helpers.metal_health_data_helper import generar_datos_salud_mental
+        from sklearn.ensemble import RandomForestRegressor
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        # 1. Generar datos sintéticos
+        df_sintetico = generar_datos_salud_mental(8000)
+
+        # 2. Entrenar modelo
+        model = RandomForestRegressor(
+            n_estimators=120,
+            max_depth=6,
+            min_samples_split=8,
+            random_state=42
+        )
+        model.fit(
+            df_sintetico[['sleep_hours_per_night', 'relationship_status']],
+            df_sintetico['mental_health_score']
+        )
+
+        # 3. Predecir para el usuario
+        X_input = np.array([[horas_sueno, estatus_relacion]])
+        pred = model.predict(X_input)[0]
+
+        # 4. Generar gráfica: salud mental vs horas de sueño
+        horas_sueño_test = np.linspace(2, 10, 20)
+        predicciones = model.predict(
+            np.column_stack((horas_sueño_test, [estatus_relacion] * len(horas_sueño_test)))
+        )
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(horas_sueño_test, predicciones, label="Predicción Salud Mental")
+        ax.axvline(horas_sueno, color='red', linestyle='--', label="Tus horas de sueño")
+        ax.set_xlabel("Horas de sueño por noche")
+        ax.set_ylabel("Puntaje de salud mental")
+        ax.set_title("Relación entre sueño y salud mental")
+        ax.legend()
+        ax.grid(True)
+
+        # 5. Convertir imagen a base64
+        grafica_base64 = plot_to_base64(fig)
+
+        # 6. Interpretación
+        if pred < 4:
+            mensaje = "⚠️ Salud mental baja, se recomienda apoyo."
+        elif pred < 7:
+            mensaje = "😐 Salud mental promedio."
+        else:
+            mensaje = "😊 Salud mental positiva."
+
+        return jsonify({
+            "salud_mental_score": round(float(pred), 2),
+            "mensaje": mensaje,
+            "grafica_base64": grafica_base64,
+            "valores_ingresados": {
+                "horas_sueno": horas_sueno,
+                "estatus_relacion": estatus_relacion
+            },
+            "modelo_metadata": {
+                "modelo_usado": "RandomForestRegressor",
+                "features": ["sleep_hours_per_night", "relationship_status"],
+                "modelo_entrenado_en_runtime": True
+            }
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
