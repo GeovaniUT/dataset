@@ -1,3 +1,7 @@
+# Configurar matplotlib para usar backend no interactivo
+import matplotlib
+matplotlib.use('Agg')
+
 from flask import Blueprint, jsonify
 from model_utils_excel import cargar_excel_enriquecido, codificar_columnas
 import matplotlib.pyplot as plt
@@ -107,11 +111,6 @@ def grafica_clustering(feature1, feature2):
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-
-
-viz_blueprint = Blueprint('viz', __name__)
-
 
 @viz_blueprint.route('/grafica-adiccion/<path:horas_uso>/<path:horas_sueno>', methods=['GET'])
 def grafica_adiccion(horas_uso, horas_sueno):
@@ -137,7 +136,7 @@ def predecir_rendimiento(horas_uso: float, horas_sueno: float):
         
         # Estructurar respuesta
         response = {
-            "prediccion_booleana": resultado["prediccion"],
+            "prediccion_booleana": resultado["prediccion"] == "Sí",
             "probabilidad_afectacion": resultado["probabilidad"],
             "mensaje": resultado["mensaje"],
             "valores_ingresados": {
@@ -154,10 +153,8 @@ def predecir_rendimiento(horas_uso: float, horas_sueno: float):
             "error": "Error en la predicción",
             "detalles": str(e)
         }), 500
-    
 
-    
-@viz_blueprint.route('/grafica-salud-mental/<float:horas_sueno>/<int:estatus_relacion>', methods=['GET'])
+@viz_blueprint.route('/grafica-salud-mental/<path:horas_sueno>/<int:estatus_relacion>', methods=['GET'])
 def grafica_salud_mental(horas_sueno, estatus_relacion):
     try:
         # Importar función de generación de datos

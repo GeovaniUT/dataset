@@ -1,4 +1,8 @@
 # model_utils_excel.py
+# Configurar matplotlib para usar backend no interactivo
+import matplotlib
+matplotlib.use('Agg')
+
 import pandas as pd
 import numpy as np
 import os

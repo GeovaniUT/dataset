@@ -1,3 +1,7 @@
+# Configurar matplotlib para usar backend no interactivo
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import base64
 import io

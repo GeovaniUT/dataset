@@ -1,3 +1,7 @@
+# Configurar matplotlib para usar backend no interactivo (evita errores de threading)
+import matplotlib
+matplotlib.use('Agg')  # Backend no interactivo para servidores web
+
 from flask import Flask
 from flask_cors import CORS
 from routes.excel_routes import excel_blueprint
