@@ -13,6 +13,7 @@ from flask import jsonify, request
 import pandas as pd
 import io
 from predictors.adiction_grafic import predecir_adiccion_porcentual
+from predictors.academic_grafic import predecir_afectacion_academica
 
 viz_blueprint = Blueprint('viz_routes', __name__)
 
@@ -208,3 +209,30 @@ def grafica_adiccion(horas_uso, horas_sueno):
         return jsonify({"error": "Los parámetros deben ser números (ej: 2 o 2.5)"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@viz_blueprint.route('/prediccion-rendimiento/<path:horas_uso>/<path:horas_sueno>', methods=['GET'])
+def predecir_rendimiento(horas_uso: float, horas_sueno: float):
+   
+    try:
+        # Llamar a la función de predicción
+        resultado = predecir_afectacion_academica(horas_uso, horas_sueno)
+        
+        # Estructurar respuesta
+        response = {
+            "prediccion_booleana": resultado["prediccion"],
+            "probabilidad_afectacion": resultado["probabilidad"],
+            "mensaje": resultado["mensaje"],
+            "valores_ingresados": {
+                "horas_diarias_uso": horas_uso,
+                "horas_sueño_nocturno": horas_sueno
+            },
+            "modelo_metadata": resultado["model_metadata"]
+        }
+        
+        return jsonify(response)
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Error en la predicción",
+            "detalles": str(e)
+        }), 500
