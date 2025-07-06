@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 from predictors.prediccion_cols_vacias import prediccion_cols_vacias
+from pathlib import Path
 
 # Carpeta donde están los excels
 DATA_FOLDER = 'data/excel_cargado'
@@ -34,20 +35,21 @@ def cargar_excel():
             return pd.read_excel(os.path.join(DATA_FOLDER, archivo))
     raise FileNotFoundError("No se encontró un archivo válido")
 
-def cargar_excel_enriquecido():
-    DATA_FOLDER = 'data/excel_cargado'  # Ruta específica
-    ARCHIVO_ESPERADO = 'excel_enriquecido.xlsx'  # Nombre exacto del archivo
+def cargar_pkl_enriquecido():
+    DATA_FOLDER = 'data/pkl_generados'  # Nueva ruta donde se guardan los PKL
+    ARCHIVO_ESPERADO = 'datos_enriquecidos.pkl'  # Nombre del archivo PKL
     
-    ruta_completa = os.path.join(DATA_FOLDER, ARCHIVO_ESPERADO)
+    ruta_completa = Path(DATA_FOLDER) / ARCHIVO_ESPERADO
     
-    if not os.path.exists(ruta_completa):
+    if not ruta_completa.exists():
+        archivos_disponibles = list(Path(DATA_FOLDER).glob('*.pkl'))
         raise FileNotFoundError(
-            f"No se encontró el archivo enriquecido en: {ruta_completa}\n"
-            f"Archivos disponibles en {DATA_FOLDER}: {os.listdir(DATA_FOLDER)}"
+            f"No se encontró el archivo PKL en: {ruta_completa}\n"
+            f"Archivos PKL disponibles en {DATA_FOLDER}: {[f.name for f in archivos_disponibles]}"
         )
     
-    print(f"Cargando archivo enriquecido desde: {ruta_completa}")
-    return pd.read_excel(ruta_completa)
+    print(f"Cargando datos enriquecidos desde: {ruta_completa}")
+    return pd.read_pickle(ruta_completa)
 
 #Función para mantener persistencia de datos generados por entrenamiento
 def guardar_modelo(modelo, target, tipo_modelo, ruta_base="modelos"):
@@ -96,14 +98,14 @@ def entrenar_modelos_desde_lista(combinaciones):
 
     df_crudo= cargar_excel()
 
-    #Validación de existencia de archivo de excelEnriquecido:
-    ruta_excel = 'data/excel_cargado/excel_enriquecido.xlsx'
-    if not os.path.exists(ruta_excel):
+    #Validación de existencia de archivo de datos_enriquecidos:
+    ruta_pkl = 'data/pkl_generados/datos_enriquecidos.pkl'
+    if not os.path.exists(ruta_pkl):
             print("Archivo enriquecido no encontrado. Generando datos...")
             prediccion_cols_vacias(df_crudo)  # Ejecutar función que genera el archivo
             print("Datos enriquecidos generados correctamente")
 
-    df = cargar_excel_enriquecido()
+    df = cargar_pkl_enriquecido()
     print("Columnas de archivo:", list(df.columns.values))
     print("Total de registros en archivo:", len(df))
     df.dropna(inplace=True)  # Cambiado a True para eliminar filas con NaN

@@ -25,10 +25,11 @@ def predecir_salud_mental(df):
         predicciones = model.predict(X).round().clip(1, 10)
         df.loc[mask, 'mental_health_score'] = predicciones.astype(int)
 
-     # 4.Creación de excel
-    output_dir = Path('data/excel_cargado')
-    output_path = output_dir / 'excel_enriquecido.xlsx'
+        # 4. Guardar resultados como PKL
+    output_dir = Path('data/pkl_generados')
+    output_dir.mkdir(parents=True, exist_ok=True)  # Crear directorio si no existe
+    output_path = output_dir / 'datos_enriquecidos.pkl'
     
-    df.to_excel(output_path, index=False)
+    df.to_pickle(output_path)  # Guardar DataFrame como archivo PKL
     
     return df
