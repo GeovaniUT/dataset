@@ -162,59 +162,76 @@ def predecir_rendimiento(horas_uso: float, horas_sueno: float):
 @viz_blueprint.route('/grafica-salud-mental/<path:horas_sueno>/<path:estatus_relacion>', methods=['GET'])
 def grafica_salud_mental(horas_sueno, estatus_relacion):
     try:
-        # Importar función de generación de datos
         from utils.data_helpers.metal_health_data_helper import generar_datos_salud_mental
         from sklearn.ensemble import RandomForestRegressor
         import matplotlib.pyplot as plt
         import numpy as np
 
-        # 1. Generar datos sintéticos
-        df_sintetico = generar_datos_salud_mental(8000)
+        # Generar datos sintéticos para el modelo
+        df = generar_datos_salud_mental(8000)
 
-        # 2. Entrenar modelo
-        model = RandomForestRegressor(
+        # Entrenar el modelo
+        modelo = RandomForestRegressor(
             n_estimators=120,
             max_depth=6,
             min_samples_split=8,
             random_state=42
         )
-        model.fit(
-            df_sintetico[['sleep_hours_per_night', 'relationship_status']],
-            df_sintetico['mental_health_score']
+        modelo.fit(
+            df[['sleep_hours_per_night', 'relationship_status']],
+            df['mental_health_score']
         )
 
-        # 3. Predecir para el usuario
-        X_input = np.array([[horas_sueno, estatus_relacion]])
-        pred = model.predict(X_input)[0]
+        # Convertir parámetros de entrada
+        horas_sueno = float(horas_sueno)
+        estatus_relacion = int(estatus_relacion)
 
-        # 4. Generar gráfica: salud mental vs horas de sueño
-        horas_sueño_test = np.linspace(2, 10, 20)
-        predicciones = model.predict(
-            np.column_stack((horas_sueño_test, [estatus_relacion] * len(horas_sueño_test)))
+        # Predecir salud mental con los datos del usuario
+        entrada = np.array([[horas_sueno, estatus_relacion]])
+        prediccion = modelo.predict(entrada)[0]
+
+        # Generar gráfica de predicción en función de las horas de sueño
+        rango_sueno = np.linspace(2, 10, 20)
+        predicciones = modelo.predict(
+            np.column_stack((rango_sueno, [estatus_relacion] * len(rango_sueno)))
         )
 
-        fig, ax = plt.subplots(figsize=(8, 4))
-        ax.plot(horas_sueño_test, predicciones, label="Predicción Salud Mental")
+        fig, ax = plt.subplots(figsize=(9, 5))
+
+        # Línea de predicción
+        ax.plot(rango_sueno, predicciones, label="Predicción de salud mental", color='blue')
+
+        # Línea vertical con las horas que el usuario duerme
         ax.axvline(horas_sueno, color='red', linestyle='--', label="Tus horas de sueño")
-        ax.set_xlabel("Horas de sueño por noche")
-        ax.set_ylabel("Puntaje de salud mental")
-        ax.set_title("Relación entre sueño y salud mental")
-        ax.legend()
-        ax.grid(True)
 
-        # 5. Convertir imagen a base64
+        # Etiquetas descriptivas en ejes
+        ax.set_xlabel("Horas de sueño por noche (1 a 10)")
+        ax.set_ylabel("Puntaje de salud mental (0 a 10)")
+        ax.set_title("Relación entre sueño y salud mental\n(según tu estado de relación)")
+        ax.set_ylim(0, 10)
+        ax.grid(True)
+        ax.legend() 
+
+        # Agregar texto descriptivo al lado derecho del eje Y
+        ax.text(10.5, 1.5, "😟 Bajo (0–3.9)", color='red', fontsize=10, va='center')
+        ax.text(10.5, 5.5, "😐 Promedio (4–6.9)", color='orange', fontsize=10, va='center')
+        ax.text(10.5, 8.5, "😊 Positiva (7–10)", color='green', fontsize=10, va='center')
+
+
+
+        # Convertir imagen a base64
         grafica_base64 = plot_to_base64(fig)
 
-        # 6. Interpretación
-        if pred < 4:
+        # Interpretar resultado
+        if prediccion < 4:
             mensaje = "⚠️ Salud mental baja, se recomienda apoyo."
-        elif pred < 7:
+        elif prediccion < 7:
             mensaje = "😐 Salud mental promedio."
         else:
             mensaje = "😊 Salud mental positiva."
 
         return jsonify({
-            "salud_mental_score": round(float(pred), 2),
+            "salud_mental_score": round(float(prediccion), 2),
             "mensaje": mensaje,
             "grafica_base64": grafica_base64,
             "valores_ingresados": {
