@@ -22,7 +22,6 @@ from pathlib import Path
 # Carpeta donde están los excels
 DATA_FOLDER = 'data/excel_cargado'
 
-
 def cargar_excel():
     archivos = sorted(os.listdir(DATA_FOLDER))
     for archivo in archivos:

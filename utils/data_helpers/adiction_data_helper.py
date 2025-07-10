@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-#Se aplica RandomForest para generar un set de datos sintéticos para alimentar el modelo de regresión lineal.
+#Se aplica generación de un set de datos sintéticos para alimentar el modelo de regresión lineal.
 def generar_datos_con_rf_col_adic(n=1000):
     np.random.seed(42)
     
