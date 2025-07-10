@@ -19,6 +19,11 @@ import io
 from predictors.adiction_grafic import predecir_adiccion_porcentual
 from predictors.academic_grafic import predecir_afectacion_academica
 from predictors.mental_health import predecir_salud_mental
+from predictors.SleepQuality import PredecirSleepQuality
+from predictors.ConflictRisk import PredecirConflictRisk
+from predictors.RecommendedScreenTime import PredecirRecommendedScreenTime
+from predictors.SocialWellbeingScore import PredecirSocialWellbeingScore
+from predictors.StudyEfficiencyScore import PredecirStudyEfficiencyScore
 
 
 viz_blueprint = Blueprint('viz_routes', __name__)
@@ -223,5 +228,63 @@ def grafica_salud_mental(horas_sueno, estatus_relacion):
             }
         })
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@viz_blueprint.route('/grafica-sleep-quality/<float:horas_sueno>/<int:mental_health>/<int:addicted_score>', methods=['GET'])
+def grafica_sleep_quality(horas_sueno, mental_health, addicted_score):
+    try:
+        Resultado = PredecirSleepQuality(horas_sueno, mental_health, addicted_score)
+        return jsonify(Resultado)
+    except Exception as E:
+        return jsonify({"error": str(E)}), 500
+
+@viz_blueprint.route('/grafica-conflict-risk/<int:addicted_score>/<float:avg_usage>/<int:relationship_status>/<platform>', methods=['GET'])
+def grafica_conflict_risk(addicted_score, avg_usage, relationship_status, platform):
+    # Mapeo de nombre de plataforma a entero
+    plataforma_map = {
+        "Facebook": 1,
+        "Instagram": 2,
+        "Twitter": 3,
+        "TikTok": 4,
+        "YouTube": 5,
+        "LinkedIn": 6,
+        "Snapchat": 7,
+        "WhatsApp": 8,
+        "Otra": 9,
+    }
+    try:
+        # Si ya es un número, usarlo directamente
+        platform_int = int(platform)
+    except ValueError:
+        # Convertir texto a entero vía diccionario, por defecto 9 (Otra)
+        platform_int = plataforma_map.get(platform, 9)
+    try:
+        resultado = PredecirConflictRisk(addicted_score, avg_usage, relationship_status, platform_int)
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@viz_blueprint.route('/grafica-recommended-screen-time/<int:age>/<int:addicted_score>/<int:mental_health>', methods=['GET'])
+def grafica_recommended_screen_time(age, addicted_score, mental_health):
+    try:
+        resultado = PredecirRecommendedScreenTime(age, addicted_score, mental_health)
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@viz_blueprint.route('/grafica-social-wellbeing/<int:relationship_status>/<int:mental_health>/<int:platform>/<int:addicted_score>', methods=['GET'])
+def grafica_social_wellbeing(relationship_status, mental_health, platform, addicted_score):
+    try:
+        resultado = PredecirSocialWellbeingScore(relationship_status, mental_health, platform, addicted_score)
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@viz_blueprint.route('/grafica-study-efficiency/<int:affects_academic>/<float:avg_usage>/<float:sleep_hours>', methods=['GET'])
+def grafica_study_efficiency(affects_academic, avg_usage, sleep_hours):
+    try:
+        resultado = PredecirStudyEfficiencyScore(affects_academic, avg_usage, sleep_hours)
+        return jsonify(resultado)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
