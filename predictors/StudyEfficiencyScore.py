@@ -1,6 +1,6 @@
 from utils.data_helpers.StudyEfficiencyDataHelper import GenerarDatosStudyEfficiency
 from utils.plot_utils import PlotToBase64
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import numpy as np
 from model_utils_excel import cargar_pkl_enriquecido
@@ -15,7 +15,7 @@ _MODELO_PATH = _MODELO_DIR / "gbr.pkl"
 
 def CompletarStudyEfficiencyScore(df):
     sintetico = GenerarDatosStudyEfficiency(6000)
-    model = GradientBoostingRegressor(random_state=42)
+    model = RandomForestRegressor(n_estimators=150, random_state=42)
     model.fit(
         sintetico[["AffectsAcademicPerformance", "AvgDailyUsageHours", "SleepHoursPerNight"]],
         sintetico["StudyEfficiencyScore"],
@@ -59,7 +59,7 @@ def PredecirStudyEfficiencyScore(affects_academic: int, avg_usage: float, sleep_
     if _MODELO_PATH.exists():
         model = joblib.load(_MODELO_PATH)
     else:
-        model = GradientBoostingRegressor(random_state=42)
+        model = RandomForestRegressor(n_estimators=150, random_state=42)
         model.fit(
             df[["AffectsAcademicPerformance", "AvgDailyUsageHours", "SleepHoursPerNight"]],
             df["StudyEfficiencyScore"],
@@ -95,13 +95,21 @@ def PredecirStudyEfficiencyScore(affects_academic: int, avg_usage: float, sleep_
             "AvgDailyUsageHours": avg_usage,
             "SleepHoursPerNight": sleep_hours,
         },
-        "ModeloMetadata": {
-            "Algoritmo": "GradientBoostingRegressor",
-            "Variables": [
-                "AffectsAcademicPerformance",
-                "AvgDailyUsageHours",
-                "SleepHoursPerNight",
+        "modelo_metadata": {
+            "algoritmo": "RandomForest",
+            "variables": [
+                "affects_academic_performance",
+                "avg_daily_usage_hours",
+                "sleep_hours_per_night",
             ],
-            "ModeloPersistente": True,
+            "explicacion_modelo": {
+                "que_es": "Bosque aleatorio que estima tu eficiencia de estudio en porcentaje.",
+                "como_funciona": "Promedia muchos árboles de decisión para mejorar la precisión y evitar sobreajuste.",
+                "para_que_sirve": "Mostrar cómo tus hábitos influyen en tu rendimiento académico y sugerir mejoras."
+            },
+            "modelo_persistente": True,
         },
+        "interpretacion_graficas": {
+            "barra_segmentada": "La barra muestra tres zonas: rojo (ineficiente), amarillo (medio) y verde (eficiente). La línea negra indica tu porcentaje actual."
+        }
     } 

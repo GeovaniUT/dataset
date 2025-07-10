@@ -114,13 +114,21 @@ def PredecirSleepQuality(SleepHours: float, MentalHealth: int, AddictedScore: in
             "MentalHealthScore": MentalHealth,
             "AddictedScore": AddictedScore,
         },
-        "ModeloMetadata": {
-            "Algoritmo": "DecisionTreeClassifier",
-            "Variables": [
-                "SleepHoursPerNight",
-                "MentalHealthScore",
-                "AddictedScore",
+        "modelo_metadata": {
+            "algoritmo": "DecisionTreeClassifier",
+            "variables": [
+                "sleep_hours_per_night",
+                "mental_health_score",
+                "addicted_score",
             ],
-            "ModeloPersistente": True,
+            "explicacion_modelo": {
+                "que_es": "Árbol de decisión que clasifica tu calidad de sueño en buena o mala basándose en horas de sueño y bienestar.",
+                "como_funciona": "Divide el espacio de variables en reglas simples para llegar a la predicción de categoría.",
+                "para_que_sirve": "Ofrecer una clasificación clara y accionable sobre tu descanso."
+            },
+            "modelo_persistente": True
         },
+        "interpretacion_graficas": {
+            "dona": "La dona muestra la proporción de la comunidad con sueño bueno (verde) y malo (rojo). Tu categoría está resaltada con un efecto de separación."
+        }
     } 

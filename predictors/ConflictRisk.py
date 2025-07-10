@@ -144,14 +144,22 @@ def PredecirConflictRisk(addicted_score: int, avg_usage: float, relationship_sta
             "RelationshipStatus": relationship_status,
             "MostUsedPlatform": platform,
         },
-        "ModeloMetadata": {
-            "Algoritmo": "RandomForestClassifier",
-            "Variables": [
-                "AddictedScore",
-                "RelationshipStatus",
-                "AvgDailyUsageHours",
-                "MostUsedPlatform",
+        "modelo_metadata": {
+            "algoritmo": "RandomForestClassifier",
+            "variables": [
+                "addicted_score",
+                "relationship_status",
+                "avg_daily_usage_hours",
+                "most_used_platform",
             ],
-            "ModeloPersistente": True,
+            "explicacion_modelo": {
+                "que_es": "Clasificador de bosque aleatorio que evalúa factores de uso y relación para estimar riesgo de conflictos.",
+                "como_funciona": "Crea múltiples árboles de decisión y combina sus resultados para una predicción robusta.",
+                "para_que_sirve": "Determinar la probabilidad de que tu actividad en redes genere conflictos interpersonales."
+            },
+            "modelo_persistente": True
         },
+        "interpretacion_graficas": {
+            "cdf": "La curva azul muestra la distribución de riesgo en la comunidad. La línea roja marca tu probabilidad: mientras más a la derecha, mayor riesgo comparado con el resto."
+        }
     } 
